@@ -1,1 +1,784 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberNode</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#101720;
+      --panel-2:#0f141c;
+      --border:#243041;
+      --border-2:#1a2330;
+      --text:#d7deea;
+      --muted:#8b97a9;
+      --accent:#4aa3ff;
+      --accent-2:#7c5cff;
+      --green:#2dd4bf;
+      --orange:#ff9f43;
+      --red:#ff6b6b;
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius:18px;
+      --radius-sm:14px;
+    }
 
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(74,163,255,.12), transparent 24%),
+        radial-gradient(circle at top left, rgba(124,92,255,.10), transparent 18%),
+        linear-gradient(180deg, #091018 0%, #0b0f14 100%);
+      color:var(--text);
+    }
+
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+    .shell{
+      min-height:100%;
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:18px;
+      padding:18px;
+    }
+
+    .sidebar, .main, .topbar, .card, .topic, .category-chip{
+      border:1px solid var(--border);
+      background:rgba(16,23,32,.92);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar{
+      border-radius:var(--radius);
+      padding:18px;
+      position:sticky;
+      top:18px;
+      height:calc(100vh - 36px);
+      overflow:auto;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      padding-bottom:16px;
+      border-bottom:1px solid var(--border-2);
+    }
+
+    .brand-mark{
+      width:42px;height:42px;border-radius:14px;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:grid;place-items:center;
+      font-weight:700;
+      color:white;
+      box-shadow:0 10px 25px rgba(74,163,255,.25);
+    }
+
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      line-height:1.1;
+    }
+    .brand p{margin:4px 0 0;color:var(--muted);font-size:12px}
+
+    .nav-title{
+      margin:16px 0 10px;
+      color:var(--muted);
+      font-size:12px;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+    }
+
+    .nav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      color:var(--text);
+      border:1px solid transparent;
+      transition:.2s ease;
+      margin-bottom:8px;
+      background:transparent;
+    }
+    .nav a:hover,
+    .nav a.active{
+      background:rgba(74,163,255,.10);
+      border-color:rgba(74,163,255,.22);
+      transform:translateX(-2px);
+    }
+
+    .sidebar .mini-card{
+      margin-top:18px;
+      padding:14px;
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(74,163,255,.08), rgba(124,92,255,.05));
+      border:1px solid rgba(74,163,255,.18);
+    }
+
+    .mini-card .big{
+      font-size:24px;
+      font-weight:700;
+      margin:0 0 4px;
+    }
+    .mini-card .small{margin:0;color:var(--muted);font-size:13px}
+
+    .main{
+      border-radius:var(--radius);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      min-height:calc(100vh - 36px);
+    }
+
+    .topbar{
+      border:none;
+      border-bottom:1px solid var(--border);
+      border-radius:0;
+      background:rgba(15,20,28,.95);
+      padding:16px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+
+    .search{
+      flex:1;
+      max-width:560px;
+      position:relative;
+    }
+    .search input{
+      width:100%;
+      padding:13px 16px 13px 44px;
+      border-radius:16px;
+      border:1px solid var(--border);
+      outline:none;
+      background:#0b1118;
+      color:var(--text);
+      transition:.2s ease;
+    }
+    .search input:focus{
+      border-color:rgba(74,163,255,.45);
+      box-shadow:0 0 0 4px rgba(74,163,255,.08);
+    }
+    .search:before{
+      content:"⌕";
+      position:absolute;
+      left:16px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--muted);
+      font-size:18px;
+    }
+
+    .user-pill{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:16px;
+      background:#0b1118;
+      border:1px solid var(--border);
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .avatar{
+      width:30px;height:30px;border-radius:50%;
+      background:linear-gradient(135deg, var(--accent), var(--green));
+      display:grid;place-items:center;
+      font-size:13px;
+      color:#04111e;
+      font-weight:700;
+    }
+
+    .hero{
+      padding:22px 22px 10px;
+      border-bottom:1px solid var(--border-2);
+      background:
+        linear-gradient(180deg, rgba(74,163,255,.08), transparent 70%),
+        rgba(8,13,20,.18);
+    }
+
+    .hero h2{
+      margin:0 0 8px;
+      font-size:28px;
+      letter-spacing:-.02em;
+    }
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      max-width:760px;
+      line-height:1.65;
+    }
+
+    .content{
+      padding:18px;
+      overflow:auto;
+    }
+
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:18px;
+    }
+    .category-chip{
+      border-radius:999px;
+      padding:10px 14px;
+      color:var(--muted);
+      cursor:pointer;
+      transition:.2s ease;
+      user-select:none;
+      background:#0b1118;
+    }
+    .category-chip:hover{
+      border-color:rgba(74,163,255,.25);
+      color:var(--text);
+      transform:translateY(-1px);
+    }
+    .category-chip.active{
+      background:rgba(74,163,255,.14);
+      color:#eff6ff;
+      border-color:rgba(74,163,255,.35);
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1.7fr .9fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    .section-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:0 0 14px;
+    }
+    .section-title h3{
+      margin:0;
+      font-size:18px;
+    }
+    .section-title span{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    .topic-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .topic{
+      border-radius:18px;
+      padding:16px;
+      transition:.2s ease;
+      background:linear-gradient(180deg, rgba(16,23,32,.96), rgba(10,15,22,.96));
+    }
+    .topic:hover{
+      transform:translateY(-2px);
+      border-color:rgba(74,163,255,.28);
+    }
+
+    .topic-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .topic-left{
+      display:flex;
+      gap:14px;
+      min-width:0;
+    }
+
+    .topic-avatar{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(74,163,255,.25), rgba(124,92,255,.25));
+      border:1px solid rgba(74,163,255,.18);
+      display:grid;
+      place-items:center;
+      font-weight:700;
+      color:#eff6ff;
+      flex:0 0 auto;
+    }
+
+    .topic-body{
+      min-width:0;
+    }
+
+    .topic-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-bottom:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .tag{
+      padding:4px 10px;
+      border-radius:999px;
+      font-size:12px;
+      color:#e9f4ff;
+      border:1px solid transparent;
+      white-space:nowrap;
+    }
+    .tag.blue{background:rgba(74,163,255,.14);border-color:rgba(74,163,255,.26)}
+    .tag.purple{background:rgba(124,92,255,.14);border-color:rgba(124,92,255,.26)}
+    .tag.green{background:rgba(45,212,191,.12);border-color:rgba(45,212,191,.24)}
+    .tag.orange{background:rgba(255,159,67,.12);border-color:rgba(255,159,67,.24)}
+    .tag.red{background:rgba(255,107,107,.12);border-color:rgba(255,107,107,.24)}
+
+    .topic h4{
+      margin:0 0 8px;
+      font-size:18px;
+      line-height:1.35;
+      word-break:break-word;
+    }
+
+    .topic p{
+      margin:0;
+      color:#b1bdcf;
+      line-height:1.7;
+      font-size:14px;
+    }
+
+    .topic-stats{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid var(--border-2);
+    }
+
+    .topic-stats b{color:var(--text);font-weight:700}
+    .side-stack{
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .card{
+      border-radius:18px;
+      padding:16px;
+      background:linear-gradient(180deg, rgba(16,23,32,.96), rgba(10,15,22,.96));
+    }
+    .card h4{
+      margin:0 0 12px;
+      font-size:16px;
+    }
+
+    .stat-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .stat{
+      border-radius:16px;
+      border:1px solid var(--border-2);
+      background:#0b1118;
+      padding:14px;
+    }
+    .stat .num{
+      font-size:22px;
+      font-weight:700;
+      margin:0 0 4px;
+    }
+    .stat .lbl{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .activity{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .activity-item{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid var(--border-2);
+      background:#0b1118;
+    }
+    .activity-item .dot{
+      width:10px;height:10px;border-radius:50%;
+      margin-top:5px;
+      background:var(--green);
+      box-shadow:0 0 0 4px rgba(45,212,191,.10);
+      flex:0 0 auto;
+    }
+    .activity-item p{
+      margin:0;
+      font-size:13px;
+      color:var(--text);
+      line-height:1.5;
+    }
+    .activity-item span{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-top:3px;
+    }
+
+    .footer{
+      margin-top:18px;
+      padding:16px 18px;
+      color:var(--muted);
+      border-top:1px solid var(--border-2);
+      background:rgba(8,13,20,.35);
+      font-size:13px;
+    }
+
+    .hidden{display:none !important}
+
+    @media (max-width: 1060px){
+      .shell{grid-template-columns:1fr}
+      .sidebar{
+        position:static;
+        height:auto;
+      }
+      .layout{grid-template-columns:1fr}
+      .main{min-height:auto}
+    }
+
+    @media (max-width: 640px){
+      .shell{padding:10px;gap:10px}
+      .topbar{flex-direction:column;align-items:stretch}
+      .user-pill{justify-content:center}
+      .hero h2{font-size:22px}
+      .content{padding:12px}
+      .topic-top{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div>
+          <h1>CyberNode</h1>
+          <p>פורום סייבר בסגנון מודרני</p>
+        </div>
+      </div>
+
+      <div class="nav-title">ניווט</div>
+      <nav class="nav">
+        <a href="#" class="active" data-filter="all">🏠 דף ראשי</a>
+        <a href="#" data-filter="security">🛡️ אבטחת מידע</a>
+        <a href="#" data-filter="programming">💻 תכנות</a>
+        <a href="#" data-filter="tools">⚙️ כלים</a>
+        <a href="#" data-filter="research">🔎 מחקר</a>
+      </nav>
+
+      <div class="mini-card">
+        <p class="big">12.4K</p>
+        <p class="small">כניסות היום</p>
+      </div>
+
+      <div class="mini-card">
+        <p class="big">184</p>
+        <p class="small">פוסטים אחרונים</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="search">
+          <input id="searchInput" type="text" placeholder="חיפוש פוסטים, קטגוריות, מושגים..." />
+        </div>
+        <div class="user-pill">
+          <div class="avatar">A</div>
+          <div>אורח מחובר</div>
+        </div>
+      </div>
+
+      <div class="hero">
+        <h2>פוסטים אחרונים מכל הקטגוריות</h2>
+        <p>
+          דף ראשי שמציג רק את מה שחדש. בלי טופס יצירת פוסט, בלי בלגן, ועם תחושה של פורום אמיתי.
+          הכניסה לכל הקטגוריות נשארת מסודרת בנפרד.
+        </p>
+      </div>
+
+      <div class="content">
+        <div class="chips" id="chips">
+          <div class="category-chip active" data-filter="all">הכול</div>
+          <div class="category-chip" data-filter="security">אבטחת מידע</div>
+          <div class="category-chip" data-filter="programming">תכנות</div>
+          <div class="category-chip" data-filter="tools">כלים</div>
+          <div class="category-chip" data-filter="research">מחקר</div>
+        </div>
+
+        <div class="layout">
+          <section>
+            <div class="section-title">
+              <h3>הזרם האחרון</h3>
+              <span id="resultCount">0 פוסטים</span>
+            </div>
+            <div class="topic-list" id="topicList"></div>
+          </section>
+
+          <aside class="side-stack">
+            <div class="card">
+              <h4>סטטיסטיקה</h4>
+              <div class="stat-grid">
+                <div class="stat">
+                  <p class="num">8.7K</p>
+                  <p class="lbl">משתמשים</p>
+                </div>
+                <div class="stat">
+                  <p class="num">1.2K</p>
+                  <p class="lbl">נושאים</p>
+                </div>
+                <div class="stat">
+                  <p class="num">24.1K</p>
+                  <p class="lbl">תגובות</p>
+                </div>
+                <div class="stat">
+                  <p class="num">47</p>
+                  <p class="lbl">פעילים כרגע</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h4>פעילות אחרונה</h4>
+              <div class="activity">
+                <div class="activity-item">
+                  <div class="dot"></div>
+                  <div>
+                    <p>נפתח דיון חדש על זיהוי תעבורה חשודה.</p>
+                    <span>לפני 12 דקות</span>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="dot"></div>
+                  <div>
+                    <p>עודכן מדריך על סריקת פורטים והקשחת שירותים.</p>
+                    <span>לפני 34 דקות</span>
+                  </div>
+                </div>
+                <div class="activity-item">
+                  <div class="dot"></div>
+                  <div>
+                    <p>נוספה שיחה חדשה על סקריפטים לניטור.</p>
+                    <span>לפני שעה</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h4>קטגוריות פופולריות</h4>
+              <div class="chips" style="margin:0">
+                <div class="category-chip active" style="pointer-events:none">אבטחת מידע</div>
+                <div class="category-chip" style="pointer-events:none">תכנות</div>
+                <div class="category-chip" style="pointer-events:none">כלים</div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <div class="footer">
+        CyberNode — דמו סטטי בעיצוב פורום סייבר מודרני, עם דף ראשי שמציג רק פוסטים אחרונים.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const topics = [
+      {
+        category: "security",
+        badge: "blue",
+        icon: "S",
+        forum: "אבטחת מידע",
+        title: "איך מזהים התנהגות חריגה ברשת ארגונית?",
+        author: "zeroTrace",
+        time: "לפני 8 דקות",
+        replies: 14,
+        views: 241,
+        desc: "דיון על אינדיקטורים נפוצים, התרעות שווא, ואיך בונים תהליך פשוט לסינון אירועים אמיתיים."
+      },
+      {
+        category: "programming",
+        badge: "purple",
+        icon: "P",
+        forum: "תכנות",
+        title: "Python לפרויקטי ניטור: מה באמת שווה להשתמש בו?",
+        author: "codePulse",
+        time: "לפני 19 דקות",
+        replies: 23,
+        views: 418,
+        desc: "השוואה בין סקריפטים פשוטים, ארכיטקטורת שירותים קטנים, ואיך לא להפוך את זה לבלתי ניתן לתחזוקה."
+      },
+      {
+        category: "tools",
+        badge: "green",
+        icon: "T",
+        forum: "כלים",
+        title: "כלי לניתוח לוגים שנראה הכי קרוב למערכת אמיתית",
+        author: "logHunter",
+        time: "לפני 41 דקות",
+        replies: 9,
+        views: 173,
+        desc: "המלצות על ממשקים נקיים, חיפוש מהיר, פילטרים וזרימה חזותית שמרגישה כמו מוצר רציני."
+      },
+      {
+        category: "research",
+        badge: "orange",
+        icon: "R",
+        forum: "מחקר",
+        title: "איך בונים סביבת בדיקה מבודדת למחקר?",
+        author: "labFox",
+        time: "לפני שעה",
+        replies: 31,
+        views: 502,
+        desc: "שיחה על בידוד, שחזור מצב, שמירת snapshots, ושיטות עבודה שלא מערבבות ניסוי עם סביבה חיה."
+      },
+      {
+        category: "security",
+        badge: "red",
+        icon: "S",
+        forum: "אבטחת מידע",
+        title: "הקשחת שירותים: מה עושים קודם?",
+        author: "blueFence",
+        time: "לפני שעתיים",
+        replies: 17,
+        views: 327,
+        desc: "סדר עדיפויות מעשי להקטנת שטח תקיפה, כיבוי רכיבים מיותרים, וניהול גישה חכם."
+      },
+      {
+        category: "programming",
+        badge: "purple",
+        icon: "P",
+        forum: "תכנות",
+        title: "איך לבנות ממשק פורום נקי בלי ספרייה כבדה",
+        author: "uiMaker",
+        time: "לפני 3 שעות",
+        replies: 12,
+        views: 289,
+        desc: "דגשים על ניווט, cards, responsive layout, ותחושה של מוצר מוכן גם כשהכול סטטי."
+      },
+      {
+        category: "tools",
+        badge: "green",
+        icon: "T",
+        forum: "כלים",
+        title: "מעקב אחרי תעבורה: מה נוח לקרוא ומה רק נראה מקצועי?",
+        author: "netScope",
+        time: "לפני 4 שעות",
+        replies: 8,
+        views: 154,
+        desc: "דיון על עומס מידע, צבעים, היררכיה, ואיך להפוך נתונים לפעולה."
+      },
+      {
+        category: "research",
+        badge: "orange",
+        icon: "R",
+        forum: "מחקר",
+        title: "שיטות לתיעוד ממצאים בלי לאבד סדר",
+        author: "memoGrid",
+        time: "לפני 6 שעות",
+        replies: 20,
+        views: 365,
+        desc: "איך לבנות תבנית אחידה לרישום מסקנות, קישורים פנימיים, ותיעוד התקדמות."
+      }
+    ];
+
+    const topicList = document.getElementById("topicList");
+    const chips = [...document.querySelectorAll("[data-filter]")];
+    const searchInput = document.getElementById("searchInput");
+    const resultCount = document.getElementById("resultCount");
+
+    let activeFilter = "all";
+
+    function renderTopics() {
+      const q = searchInput.value.trim().toLowerCase();
+
+      const filtered = topics.filter(t => {
+        const byCategory = activeFilter === "all" || t.category === activeFilter;
+        const haystack = `${t.title} ${t.forum} ${t.author} ${t.desc}`.toLowerCase();
+        const bySearch = !q || haystack.includes(q);
+        return byCategory && bySearch;
+      });
+
+      resultCount.textContent = `${filtered.length} פוסטים`;
+
+      topicList.innerHTML = filtered.map(t => `
+        <article class="topic">
+          <div class="topic-top">
+            <div class="topic-left">
+              <div class="topic-avatar">${t.icon}</div>
+              <div class="topic-body">
+                <div class="topic-meta">
+                  <span class="tag ${t.badge}">${t.forum}</span>
+                  <span>פורסם ע"י <b>${t.author}</b></span>
+                  <span>•</span>
+                  <span>${t.time}</span>
+                </div>
+                <h4>${t.title}</h4>
+                <p>${t.desc}</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-stats">
+            <span><b>${t.replies}</b> תגובות</span>
+            <span><b>${t.views}</b> צפיות</span>
+            <span>עדכון אחרון: ${t.time}</span>
+          </div>
+        </article>
+      `).join("");
+
+      if (!filtered.length) {
+        topicList.innerHTML = `
+          <div class="topic">
+            <h4>לא נמצאו תוצאות</h4>
+            <p>נסה חיפוש אחר או קטגוריה אחרת.</p>
+          </div>
+        `;
+      }
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener("click", (e) => {
+        e.preventDefault();
+        const filter = chip.dataset.filter;
+
+        activeFilter = filter;
+
+        chips.forEach(c => c.classList.remove("active"));
+        document.querySelectorAll(`[data-filter="${filter}"]`).forEach(c => c.classList.add("active"));
+
+        renderTopics();
+      });
+    });
+
+    searchInput.addEventListener("input", renderTopics);
+
+    renderTopics();
+  </script>
+</body>
+</html>
